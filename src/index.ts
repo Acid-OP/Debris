@@ -1,56 +1,20 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import net from "net";
 
-// Load environment variables
-dotenv.config();
+const PORT = 4000;
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const server = net.createServer((socket) => {
+  console.log("Client connected");
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  socket.on("data", (data) => {
+    console.log("Received: " + data.toString());
+    socket.write("Response: " + data.toString());
+  });
 
-// Basic route
-app.get('/', (req: Request, res: Response) => {
-  res.json({
-    message: 'Welcome to the API',
-    status: 'success',
-    timestamp: new Date().toISOString()
+  socket.on("end", () => {
+    console.log("Client disconnected");
   });
 });
 
-// Health check route
-app.get('/health', (req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
+server.listen(PORT, () => {
+  console.log(`TCP Server running on port ${PORT}`);
 });
-
-// Example API route
-app.get('/api/hello', (req: Request, res: Response) => {
-  const { name } = req.query;
-  res.json({
-    message: `Hello, ${name || 'World'}!`,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.url} not found`
-  });
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📍 Local: http://localhost:${PORT}`);
-});
-
